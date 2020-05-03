@@ -15,7 +15,7 @@ after_success:
     - docker build -t railzakirov/multi-server ./server
     - docker build -t railzakirov/multi-worker ./worker
     # Log in to the Docker CLI
-    - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+    - echo "$DOCKER_PASSWORD" | docker login docker.io -u "$DOCKER_ID" --password-stdin
     # Take those images and push therm into Docker Hub
     - docker push railzakirov/multi-client
     - docker push railzakirov/multi-nginx
