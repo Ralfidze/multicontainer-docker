@@ -1,0 +1,24 @@
+language: generic 
+sudo: required
+services:
+    - docker
+
+before_install:
+    - docker build -t railzakirov/reacttest -f ./client/Dockerfile.dev ./client
+
+script:
+    - docker run -e CI=true railzakirov/reacttest npm test
+
+after_success:
+    - docker build -t railzakirov/multi-client ./client
+    - docker build -t railzakirov/multi-nginx ./nginx
+    - docker build -t railzakirov/multi-server ./server
+    - docker build -t railzakirov/multi-worker ./worker
+    # Log in to the Docker CLI
+    - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+    # Take those images and push therm into Docker Hub
+    - docker push railzakirov/multi-client
+    - docker push railzakirov/multi-nginx
+    - docker push railzakirov/multi-server
+    - docker push railzakirov/multi-worker
+
