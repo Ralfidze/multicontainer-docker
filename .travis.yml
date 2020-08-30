@@ -1,0 +1,35 @@
+language: generic 
+sudo: required
+services:
+    - docker
+
+before_install:
+    - docker build -t ralfidze/reacttest -f ./client/Dockerfile.dev ./client
+
+script:
+    - docker run -e CI=true ralfidze/reacttest npm test
+
+after_success:
+    - docker build -t ralfidze/multi-client ./client
+    - docker build -t ralfidze/multi-nginx ./nginx
+    - docker build -t ralfidze/multi-server ./server
+    - docker build -t ralfidze/multi-worker ./worker
+    # Log in to the Docker CLI
+    - echo "$DOCKER_PASSWORD" | docker login docker.io -u "$DOCKER_ID" --password-stdin
+    # Take those images and push therm into Docker Hub
+    - docker push ralfidze/multi-client
+    - docker push ralfidze/multi-nginx
+    - docker push ralfidze/multi-server
+    - docker push ralfidze/multi-worker
+deploy:
+    edge: true
+    provider: elasticbeanstalk
+    region: us-east-2
+    app: multi-docker
+    env: MultiDocker-env
+    bucket_name: elasticbeanstalk-us-east-2-724410206410
+    bucket_path: docker-multi
+    on:
+        branch: master
+    access_key_id: $AWS_ACCESS_KEY
+    secret_access_key: $AWS_SECRET_KEY
